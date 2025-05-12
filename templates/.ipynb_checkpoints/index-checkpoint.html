@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Norberg Angle Prediction Interface</title>
+  <style>
+
+    .btn {
+      font-family: 'Segoe UI', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      line-height: 1;
+      padding: 8px 16px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      min-width: 140px;
+    }
+
+
+    .filename-display {
+      pointer-events: none;
+      user-select: none;
+    }
+
+
+
+
+    body {
+      margin: 0;
+      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .top-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .top-controls button,
+    .top-controls label {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+
+    .top-controls button:hover {
+      background-color: #f0f0f0;
+    }
+
+    #folderInput {
+      display: none;
+    }
+
+    #filenameDisplay {
+      text-align: center;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    #predictBtn:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-top: 2px solid #444;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f9f9f9;
+      transform: scale(0.85);               /* ✅ 缩小整个页面 */
+      transform-origin: top center;        /* ✅ 以顶部中心为缩放基准点 */
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+    }
+    #folderInput {
+      margin-top: 20px;
+    }
+    #filenameDisplay {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .canvas-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 30px;
+      margin-top: 20px;
+      position: relative;  /* ✅ 添加这行 */
+    }
+
+
+
+    canvas {
+      display: block;
+      background-color: white;
+      border: 1px solid #ccc;
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+
+
+
+
+    .bottom-controls {
+      display: none;
+      margin-top: 20px;
+      justify-content: center;
+      gap: 10px;
+    }
+    button {
+      padding: 8px 14px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      background-color: #e0e0e0;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #d2d2d2;
+    }
+    .active {
+      background-color: #555;
+      color: white;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .toolbar-wrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+    }
+
+    .left-toolbar, .right-toolbar {
+      position: fixed;
+      top: 30%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background-color: rgba(255, 255, 255, 0.8); /* ✅ 半透明 */
+      padding: 10px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      cursor: move; /* ✅ 提示可拖动 */
+    }
+
+    .left-toolbar {
+      left: 3px; /* ✅ 靠左边 */
+    }
+
+    .right-toolbar {
+      right: 3px; /* ✅ 靠右边 */
+    }
+
+
+
+
+    .left-toolbar button,
+    .right-toolbar button {
+      width: 100%;
+      max-width: 220px;
+    }
+
+
+    @media (max-width: 1024px) {
+      .toolbar-wrapper {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+
+
+
+
+
+
+
+
+  </style>
+</head>
+<body style="background-color: #f0f2f5;">
+  <div class="container">
+    <h2 style="text-align: center;">Norberg Angle Prediction Interface</h2>
+    <!-- 顶部控件 -->
+    <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 10px;">
+      <label for="folderInput" class="btn">
+        <input type="file" id="folderInput" webkitdirectory multiple style="display: none;">
+        Select Folder
+      </label>
+
+      <button id="predictBtn" class="btn" onclick="startPrediction()">Predict Labels</button>
+
+      <span id="filenameDisplay" class="btn filename-display">No images uploaded</span>
+    </div>
+
+
+
+    <div style="margin-top: 15px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;">
+
+      <input id="gotoIndex" type="number" min="1" placeholder="Index" style="width: 80px; padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc;">
+      <button onclick="goToIndex()" style="padding: 6px 10px; border-radius: 6px; background: #eee;">Go</button>
+
+      <input id="gotoFilename" type="text" placeholder="Filename" style="width: 140px; padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc;">
+      <button onclick="goToFilename()" style="padding: 6px 10px; border-radius: 6px; background: #eee;">Go</button>
+    </div>
+
+
+
+
+
+
+
+
+
+
+    <div class="canvas-wrapper">
+
+      <!-- 左侧工具栏 -->
+      <div class="card left-toolbar hidden" id="labelTools">
+        <button id="btnCircle1" onclick="setLabel('circle1')">Left Acetabulum</button>
+        <button id="btnCircle2" onclick="setLabel('circle2')">Right Acetabulum</button>
+        <button id="btnPoint1" onclick="setLabel('point1')">Left Head</button>
+        <button id="btnPoint2" onclick="setLabel('point2')">Right Head</button>
+        <button onclick="undoLast()">Undo</button>
+        <button onclick="removeAllLabels()">Remove All</button>
+        <button onclick="calculateHumanAngles()">Calculate Angles</button>
+      </div>
+
+      <!-- 主画布 + 底部导航 -->
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="width: 100%; display: flex; justify-content: space-between; padding: 0 40px;">
+          <div id="manualAngleText" style="
+            font-size: 14px;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            background-color: transparent;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: bold;
+            color: black;
+          "></div>
+
+          <div id="predictedAngleText" style="
+            font-size: 14px;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            background-color: transparent;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: bold;
+            color: black;
+          "></div>
+
+        </div>
+
+        <!-- canvas 保留原样 -->
+        <canvas id="canvas"></canvas>
+
+
+        <div class="card bottom-controls" id="navControls">
+          <button onclick="prevImage()">← Prev</button>
+          <button onclick="nextImage()">Next →</button>
+          <button onclick="zoomIn()">Zoom In</button>
+          <button onclick="zoomOut()">Zoom Out</button>
+          <button onclick="panUp()">↑</button>
+          <button onclick="panDown()">↓</button>
+          <button onclick="panLeft()">←</button>
+          <button onclick="panRight()">→</button>
+          <button onclick="resetZoom()">Reset</button>
+        </div>
+      </div>
+
+      <!-- 右侧按钮栏 -->
+      <div class="card right-toolbar hidden" id="modeButtons">
+        <button onclick="setMode('predict')">Predicted Label</button>
+        <button onclick="downloadPred()">Download Predicted</button>
+        <button onclick="setMode('label')">Human Label</button>
+        <button onclick="saveHumanLabel()">Save Label</button>
+        <button onclick="downloadHuman()">Download Human Labels</button>
+      </div>
+
+    </div>
+
+
+  </div>
+
+  <script>
+    let imageFiles = [];
+    let currentIndex = 0;
+    let mode = 'predict';
+    let activeLabel = null;
+    let drawnCenters = [], drawnHeads = [], drawnRadii = [];
+    let predictedCenters = [];
+    let predictedHeads = [];
+    let predictedRadii = [];
+    let predictedAngle1 = undefined;
+    let predictedAngle2 = undefined;
+
+    let draggingIndex = null;
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+    let scale = 1;
+    let image = new Image();
+    let zoomScale = 1;
+    let panX = 0;
+    let panY = 0;
+    let savedHumanLabelPaths = [];
+
+
+
+
+
+    image.onload = function () {
+      zoomScale = 1;
+      panX = 0;
+      panY = 0;
+
+      canvas.width = image.width;
+      canvas.height = image.height;
+
+      redraw();
+    };
+
+
+
+
+
+
+
+    function loadImage(index) {
+      const file = imageFiles[index];
+      currentFilename = file.name;
+      console.log("Loading image:", currentFilename);
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+
+        image.onload = function () {
+          document.getElementById('gotoIndex').value = '';
+          document.getElementById('gotoFilename').value = '';
+
+          scale = 1;
+          canvas.width = image.width;
+          canvas.height = image.height;
+
+          // 显示文件名
+          document.getElementById('filenameDisplay').innerText =
+            `Image ${index + 1} / ${imageFiles.length}: ${file.name}`;
+
+          // 清空标注变量
+          drawnCenters = [];
+          drawnHeads = [];
+          drawnRadii = [];
+          angle1 = undefined;
+          angle2 = undefined;
+          predictedCenters = [];
+          predictedHeads = [];
+          predictedRadii = [];
+          predictedAngle1 = undefined;
+          predictedAngle2 = undefined;
+
+          // 选择读取的 mat 文件夹
+          const matFolder = (mode === 'predict') ? 'Pred' : 'Human_Labels';
+
+          fetch('/load_label', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: matFolder,  // Pred 或 Human_Labels
+              fileonly: currentFilename
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.found) {
+              const pts = data.points || [];
+              const radii = data.radii || [0, 0];
+              [angle1, angle2] = data.angles || [0, 0];
+
+              if (mode === 'predict') {
+                // ✅ 只保存预测点用于绘图
+                predictedCenters = pts.slice(0, 2);
+                predictedHeads = pts.slice(2, 4);
+                predictedRadii = radii;
+                predictedAngle1 = angle1;
+                predictedAngle2 = angle2;
+
+                document.getElementById('predictedAngleText').innerText =
+                  `Pred: ${angle1.toFixed(1)}°, ${angle2.toFixed(1)}°`;
+
+                // ✅ 加载人工角度（不影响绘图）
+                fetch('/load_label', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    filename: 'Human_Labels',
+                    fileonly: currentFilename
+                  })
+                })
+                .then(res => res.json())
+                .then(manualData => {
+                  if (manualData.found) {
+                    const [a1, a2] = manualData.angles || [0, 0];
+                    document.getElementById('manualAngleText').innerText =
+                      `Manual: ${a1.toFixed(1)}°, ${a2.toFixed(1)}°`;
+                  } else {
+                    document.getElementById('manualAngleText').innerText = 'Manual: ---, ---';
+                  }
+                });
+
+              } else {
+                // 手动标注模式
+                drawnCenters = pts.slice(0, 2);
+                drawnHeads = pts.slice(2, 4);
+                drawnRadii = radii;
+                angle1 = angle1;
+                angle2 = angle2;
+
+                document.getElementById('manualAngleText').innerText =
+                  `Manual: ${angle1.toFixed(1)}°, ${angle2.toFixed(1)}°`;
+
+                fetch('/load_label', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    filename: 'Pred',
+                    fileonly: currentFilename
+                  })
+                })
+                .then(res => res.json())
+                .then(predData => {
+                  if (predData.found) {
+                    const [a1, a2] = predData.angles || [0, 0];
+                    document.getElementById('predictedAngleText').innerText =
+                      `Pred: ${a1.toFixed(1)}°, ${a2.toFixed(1)}°`;
+                  } else {
+                    document.getElementById('predictedAngleText').innerText = 'Pred: ---, ---';
+                  }
+                });
+              }
+            } else {
+              document.getElementById('manualAngleText').innerText = '';
+              document.getElementById('predictedAngleText').innerText = '';
+            }
+
+            // ✅ 预测标记加载完成就刷新
+            redraw();
+          });
+        };
+
+        image.src = e.target.result;
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+
+    document.getElementById('folderInput').addEventListener('change', function () {
+      imageFiles = Array.from(this.files).filter(f => f.type.startsWith('image/'));
+      imageFiles.sort((a, b) => a.name.localeCompare(b.name));
+      currentIndex = 0;
+      if (imageFiles.length > 0) {
+        loadImage(currentIndex);
+        let firstRelativePath = imageFiles[0].webkitRelativePath;
+        let parts = firstRelativePath.split('/');
+        parts.pop(); // 去掉文件名
+        originalPath = parts.join('/'); // 存为全局变量
+        console.log("Original relative path:", originalPath);
+      }
+      const hasFiles = imageFiles.length > 0;
+
+      // 显示底部导航
+      document.getElementById('navControls').style.display = hasFiles ? 'flex' : 'none';
+
+      // 仅当有文件时，移除 hidden class 并设置显示
+      if (hasFiles) {
+        const labelTools = document.getElementById("labelTools");
+        const modeButtons = document.getElementById("modeButtons");
+
+        labelTools.classList.remove("hidden");
+        modeButtons.classList.remove("hidden");
+
+        if (mode === 'label') {
+          labelTools.style.display = 'flex';
+        } else {
+          labelTools.style.display = 'none';
+        }
+
+        modeButtons.style.display = 'flex';
+      }
+    });
+
+    let originalPath = "";
+    function getBasePath() {
+      if (!originalPath) return '';
+      const parts = originalPath.split('/');
+      if (parts.length < 2) return '';
+      return parts.slice(0, parts.length - 1).join('/');
+    }
+
+    function setLabel(label) {
+      activeLabel = label;
+      document.querySelectorAll('.left-toolbar button').forEach(btn => btn.classList.remove('active'));
+      const btnId = "btn" + label.charAt(0).toUpperCase() + label.slice(1);
+      const btn = document.getElementById(btnId);
+      if (btn) btn.classList.add("active");
+    }
+
+
+
+
+
+    function prevImage() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        loadImage(currentIndex);
+      }
+    }
+
+    function nextImage() {
+      if (currentIndex < imageFiles.length - 1) {
+        currentIndex++;
+        loadImage(currentIndex);
+      }
+    }
+
+    function undoLast() {
+      if (drawnHeads.length > 0) drawnHeads.pop();
+      else if (drawnCenters.length > 0) {
+        drawnCenters.pop();
+        drawnRadii.pop();
+      }
+      redraw();
+    }
+
+    let angle1 = 0;
+    let angle2 = 0;
+
+    function calculateHumanAngles() {
+      if (drawnCenters.length === 2 && drawnHeads.length === 2) {
+        angle1 = calculateAngle(drawnCenters[0], drawnHeads[0], drawnCenters[1]);
+        angle2 = calculateAngle(drawnCenters[1], drawnHeads[1], drawnCenters[0]);
+
+        document.getElementById('manualAngleText').innerText = `Manual: ${angle1.toFixed(1)}°, ${angle2.toFixed(1)}°`;
+        document.getElementById('predictedAngleText').innerText = `Pred: ---, ---`;
+      } else {
+        alert("Please annotate both centers and both head points before calculating angles.");
+      }
+    }
+
+function setMode(newMode) {
+  mode = newMode;
+
+  if (mode === 'label') {
+    // ✅ 切换为人工标注前，先从 Pred 复制 .mat 到 Human_Labels（若不存在）
+    fetch('/copy_predictions_to_human', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Predictions copied to Human_Labels.");
+        document.getElementById('labelTools').style.display = 'flex';
+        loadImage(currentIndex);  // ✅ 重新加载人工标注
+      })
+      .catch(err => {
+        alert("Failed to copy predicted labels: " + err);
+        // 即使失败也可以让用户进入标注界面
+        document.getElementById('labelTools').style.display = 'flex';
+        loadImage(currentIndex);
+      });
+
+  } else if (mode === 'predict') {
+    // ✅ 隐藏人工标注工具
+    document.getElementById('labelTools').style.display = 'none';
+
+    // ✅ 重新加载当前图片：读取 Pred + 显示人工角度（不绘制人工点）
+    loadImage(currentIndex);
+  }
+}
+
+
+
+
+    function calculateAngle(center, head, oppositeCenter) {
+      const v1 = [head[0] - center[0], head[1] - center[1]];
+      const v2 = [oppositeCenter[0] - center[0], oppositeCenter[1] - center[1]];
+      const dot = v1[0]*v2[0] + v1[1]*v2[1];
+      const norm1 = Math.hypot(...v1);
+      const norm2 = Math.hypot(...v2);
+      return Math.acos(Math.max(-1, Math.min(1, dot / (norm1 * norm2)))) * 180 / Math.PI;
+    }
+
+    function redraw() {
+      // 1. Reset transform and clear
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setLineDash([]);
+
+      // 2. Get center point for zoom/pan
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      ctx.translate(centerX, centerY);
+      ctx.scale(zoomScale, zoomScale);
+      ctx.translate(-centerX + panX, -centerY + panY);
+
+      // 3. Draw image
+      ctx.drawImage(image, 0, 0);
+
+      // 4. Get relevant data
+      const centers = (mode === 'predict') ? predictedCenters : drawnCenters;
+      const heads   = (mode === 'predict') ? predictedHeads   : drawnHeads;
+      const radii   = (mode === 'predict') ? predictedRadii   : drawnRadii;
+      const color   = (mode === 'predict') ? 'green' : 'blue';
+
+      // 5. Draw circles (acetabulum)
+      centers.forEach((c, i) => {
+        if (!Array.isArray(c)) return;
+        const r = radii[i] || 30;
+
+        // Draw circle
+        ctx.beginPath();
+        ctx.arc(c[0], c[1], r, 0, 2 * Math.PI);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw center dot
+        ctx.beginPath();
+        ctx.arc(c[0], c[1], 4, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        // 🔵 Highight active label
+        if (mode === 'label' && ((i === 0 && activeLabel === 'circle1') || (i === 1 && activeLabel === 'circle2'))) {
+          ctx.beginPath();
+          ctx.arc(c[0], c[1], 8, 0, 2 * Math.PI);
+          ctx.strokeStyle = 'orange';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      });
+
+      // 6. Draw heads (femoral head keypoints)
+      heads.forEach((pt, i) => {
+        if (!Array.isArray(pt)) return;
+
+        ctx.beginPath();
+        ctx.arc(pt[0], pt[1], 6, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        // 🔵 Highight active label
+        if (mode === 'label' && ((i === 0 && activeLabel === 'point1') || (i === 1 && activeLabel === 'point2'))) {
+          ctx.beginPath();
+          ctx.arc(pt[0], pt[1], 9, 0, 2 * Math.PI);
+          ctx.strokeStyle = 'orange';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      });
+
+      // 7. Draw Norberg angle lines (only if complete)
+      if (centers.length === 2 && heads.length === 2 && centers.every(p => p) && heads.every(p => p)) {
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 6]);
+
+        ctx.beginPath();
+        ctx.moveTo(...centers[0]);
+        ctx.lineTo(...heads[0]);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(...centers[1]);
+        ctx.lineTo(...heads[1]);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(...centers[0]);
+        ctx.lineTo(...centers[1]);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+      }
+    }
+
+
+    canvas.addEventListener('click', e => {
+      if (mode !== 'label' || !activeLabel) return;
+
+      const [x, y] = getLogicCoords(e);
+
+      if (activeLabel === 'circle1') {
+        drawnCenters[0] = [x, y];
+        drawnRadii[0] = drawnRadii[0] || 40;
+      } else if (activeLabel === 'circle2') {
+        // ✅ 确保 radii[0] 已初始化，防止右圆滚轮异常
+        if (drawnRadii[0] === undefined) drawnRadii[0] = undefined;
+        drawnCenters[1] = [x, y];
+        drawnRadii[1] = drawnRadii[1] || 40;
+      } else if (activeLabel === 'point1') {
+        drawnHeads[0] = [x, y];
+      } else if (activeLabel === 'point2') {
+        drawnHeads[1] = [x, y];
+      }
+
+      redraw();
+    });
+
+
+
+
+
+
+    canvas.addEventListener('mousedown', e => {
+      const [x, y] = getLogicCoords(e);
+      const threshold = Math.max(10 / zoomScale, canvas.width * 0.005);
+
+      [...drawnCenters, ...drawnHeads].forEach((pt, i) => {
+        if (pt && pt.length === 2 && Math.hypot(pt[0] - x, pt[1] - y) < threshold) {
+          draggingIndex = i;
+
+          // ✅ 设置当前点为 activeLabel
+          if (i < drawnCenters.length) {
+            activeLabel = (i === 0) ? 'circle1' : 'circle2';
+          } else {
+            const hi = i - drawnCenters.length;
+            activeLabel = (hi === 0) ? 'point1' : 'point2';
+          }
+
+          updateButtonHighlight();  // ✅ 高亮按钮
+        }
+      });
+    });
+
+
+
+    function updateButtonHighlight() {
+      document.querySelectorAll('.left-toolbar button').forEach(btn => btn.classList.remove('active'));
+      if (activeLabel) {
+        const btnId = 'btn' + activeLabel.charAt(0).toUpperCase() + activeLabel.slice(1);
+        const btn = document.getElementById(btnId);
+        if (btn) btn.classList.add('active');
+      }
+    }
+
+
+
+
+    canvas.addEventListener('mouseup', () => {
+      if (draggingIndex !== null) {
+        activeLabel = null;  // ✅ 拖动结束后取消高亮
+        updateButtonHighlight();  // ✅ 移除按钮的 active 样式
+      }
+      draggingIndex = null;
+    });
+
+
+    canvas.addEventListener('mousemove', e => {
+      const [x, y] = getLogicCoords(e);
+      const threshold = Math.max(10 / zoomScale, canvas.width * 0.005);
+      const allPoints = [...drawnCenters, ...drawnHeads];
+
+      if (draggingIndex !== null) {
+        // ✅ 拖动中，更新点位置
+        if (draggingIndex < drawnCenters.length) {
+          drawnCenters[draggingIndex] = [x, y];
+
+          // ✅ 高亮左圆 or 右圆按钮
+          setLabel(draggingIndex === 0 ? 'circle1' : 'circle2');
+        } else {
+          const headIndex = draggingIndex - drawnCenters.length;
+          drawnHeads[headIndex] = [x, y];
+
+          // ✅ 高亮左头 or 右头按钮
+          setLabel(headIndex === 0 ? 'point1' : 'point2');
+        }
+
+        redraw();
+        return;
+      }
+
+      // ✅ 判断鼠标是否悬停在已有点上（健壮判断）
+      const hovering = allPoints.some(pt =>
+        Array.isArray(pt) &&
+        pt.length === 2 &&
+        Math.hypot(pt[0] - x, pt[1] - y) < threshold
+      );
+
+      canvas.style.cursor = hovering ? 'grab' : 'default';
+    });
+
+
+
+
+
+
+
+
+    canvas.addEventListener('wheel', e => {
+      if (mode === 'label' && (activeLabel === 'circle1' || activeLabel === 'circle2')) {
+        const i = activeLabel === 'circle1' ? 0 : 1;
+
+        // ✅ 始终阻止默认滚动，防止页面跟随滚动
+        e.preventDefault();
+
+        // ✅ radii 有效时才调整大小
+        if (drawnRadii[i] !== undefined) {
+          drawnRadii[i] = Math.max(5, drawnRadii[i] + (e.deltaY < 0 ? 5 : -5));
+          redraw();
+        }
+      }
+    }, { passive: false });
+
+
+
+
+
+
+    function zoomIn() {
+      zoomScale *= 1.1;
+      redraw();
+    }
+
+    function zoomOut() {
+      zoomScale /= 1.1;
+      redraw();
+    }
+
+
+    function panUp() {
+      panY += 50 / zoomScale;
+      redraw();
+    }
+
+    function panDown() {
+      panY -= 50 / zoomScale;
+      redraw();
+    }
+
+    function panLeft() {
+      panX += 50 / zoomScale;
+      redraw();
+    }
+
+    function panRight() {
+      panX -= 50 / zoomScale;
+      redraw();
+    }
+
+    function resetZoom() {
+      zoomScale = 1;
+      panX = 0;
+      panY = 0;
+      redraw();
+    }
+
+    function getLogicCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const screenX = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const screenY = (e.clientY - rect.top) * (canvas.height / rect.height);
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const logicX = (screenX - centerX) / zoomScale + centerX + panX;
+      const logicY = (screenY - centerY) / zoomScale + centerY + panY;
+      return [logicX, logicY];
+    }
+
+
+    function saveHumanLabel() {
+      if (drawnCenters.length !== 2 || drawnHeads.length !== 2 || drawnRadii.length !== 2) {
+        alert("Please complete both circles and head points before saving.");
+        return;
+      }
+
+      const angle1 = calculateAngle(drawnCenters[0], drawnHeads[0], drawnCenters[1]);
+      const angle2 = calculateAngle(drawnCenters[1], drawnHeads[1], drawnCenters[0]);
+
+      fetch('/save_label', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: originalPath,
+          fileonly: currentFilename,
+          points: drawnCenters.concat(drawnHeads),
+          radii: drawnRadii,
+          angles: [angle1, angle2]
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        showToast("✔ Label saved! You can download all via 'Download Human Labels'.");
+        savedHumanLabelPaths.push(data.path);
+      })
+      .catch(err => {
+        alert("Save failed: " + err);
+      });
+    }
+
+
+
+    function makeDraggable(el) {
+      let isDown = false;
+      let offset = [0, 0];
+
+      el.addEventListener('mousedown', function (e) {
+        isDown = true;
+
+        // 统一使用 left/top 定位，避免 left/right 冲突
+        el.style.transform = 'none';
+        el.style.left = el.offsetLeft + 'px';
+        el.style.top = el.offsetTop + 'px';
+        el.style.position = 'fixed';
+
+        offset = [
+          el.offsetLeft - e.clientX,
+          el.offsetTop - e.clientY
+        ];
+      });
+
+
+      document.addEventListener('mouseup', () => { isDown = false; });
+
+      document.addEventListener('mousemove', function (e) {
+        if (!isDown) return;
+
+        const minX = 0;
+        const minY = 0;
+        const maxX = window.innerWidth - el.offsetWidth;
+        const maxY = window.innerHeight - el.offsetHeight+ 200;
+
+        const newX = Math.min(Math.max(e.clientX + offset[0], minX), maxX);
+        const newY = Math.min(Math.max(e.clientY + offset[1], minY), maxY);
+
+        el.style.left = `${newX}px`;
+        el.style.top = `${newY}px`;
+      });
+    }
+
+
+
+
+
+
+    // 调用
+    window.onload = function () {
+      makeDraggable(document.getElementById('labelTools'));
+      makeDraggable(document.getElementById('modeButtons'));
+    };
+
+
+    function downloadPred() {
+      fetch('/download_predicted')
+        .then(response => {
+          if (!response.ok) throw new Error("Download failed.");
+          return response.blob();
+        })
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'Predicted_Labels.zip';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        })
+        .catch(err => alert("Download failed: " + err));
+    }
+
+
+    function downloadHuman() {
+      if (savedHumanLabelPaths.length === 0) {
+        alert("No human labels saved yet.");
+        return;
+      }
+
+      fetch('/download_human', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: savedHumanLabelPaths })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Download failed.");
+        return response.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Human_Labels.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      })
+      .catch(err => alert("Download failed: " + err));
+    }
+
+
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.innerText = message;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2500);
+    }
+
+    function startPrediction() {
+      mode = 'predict';
+
+      const btn = document.getElementById('predictBtn');
+      btn.disabled = true;
+      btn.innerHTML = 'Predicting <span class="spinner"></span>';
+
+      const formData = new FormData();
+      imageFiles.forEach(f => formData.append('image', f, f.name));
+      formData.append('original_path', originalPath);
+
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
+      fetch('/predict_all', {
+        method: 'POST',
+        body: formData
+      })
+      .then(async res => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Server error ${res.status}: ${text}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data.status === 'done') {
+          alert("✅ Prediction complete.");
+          loadImage(currentIndex);
+        } else {
+          alert("Prediction error: " + JSON.stringify(data));
+        }
+      })
+      .catch(async err => {
+        let errorText = '';
+        try {
+          errorText = await err.text();  // 尝试读取返回文本
+        } catch (e) {
+          errorText = err.toString();    // 失败则用默认 toString
+        }
+        alert("Prediction failed: " + errorText);
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.innerText = 'Predict Labels';
+      });
+
+    }
+
+    function highlightActiveButton() {
+      document.querySelectorAll('.right-toolbar button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      const btnId = "btn" + activeLabel.charAt(0).toUpperCase() + activeLabel.slice(1);
+      const activeBtn = document.getElementById(btnId);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+      }
+    }
+
+    function goToIndex() {
+      const input = document.getElementById('gotoIndex');
+      const idx = parseInt(input.value);
+      if (!isNaN(idx) && idx >= 1 && idx <= imageFiles.length) {
+        currentIndex = idx - 1;
+        loadImage(currentIndex);
+      } else {
+        alert("Invalid index.");
+      }
+    }
+
+    function goToFilename() {
+      const input = document.getElementById('gotoFilename');
+      const rawName = input.value.trim().toLowerCase();
+      if (!rawName) return;
+
+      const name = rawName.endsWith('.jpg') ? rawName : rawName + '.jpg';
+      const idx = imageFiles.findIndex(f => f.name.toLowerCase() === name);
+      if (idx !== -1) {
+        currentIndex = idx;
+        loadImage(currentIndex);
+      } else {
+        alert("File not found: " + name);
+      }
+    }
+
+    function removeAllLabels() {
+      drawnCenters = [];
+      drawnRadii = [];
+      drawnHeads = [];
+      redraw();
+    }
+
+
+
+  </script>
+  <div id="toast" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index: 1000;
+    display: none;
+    font-weight: bold;
+  "></div>
+
+</body>
+</html>

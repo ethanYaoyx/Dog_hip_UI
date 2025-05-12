@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Login & Registration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .auth-container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 320px;
+    }
+
+    .auth-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .auth-container input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .auth-container button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .auth-container button:hover {
+      background-color: #45a049;
+    }
+
+    .toggle-link {
+      display: block;
+      text-align: center;
+      margin-top: 12px;
+      color: #333;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container" id="loginBox">
+    <h2>Login</h2>
+    <input type="text" placeholder="Username" id="loginUsername">
+    <input type="password" placeholder="Password" id="loginPassword">
+    <button onclick="login()">Login</button>
+    <span class="toggle-link" onclick="showRegister()">Don't have an account? Register</span>
+  </div>
+
+  <div class="auth-container" id="registerBox" style="display: none;">
+    <h2>Register</h2>
+    <input type="text" placeholder="Username" id="registerUsername">
+    <input type="password" placeholder="Password" id="registerPassword">
+    <input type="password" placeholder="Confirm Password" id="confirmPassword">
+    <button onclick="register()">Register</button>
+    <span class="toggle-link" onclick="showLogin()">Already have an account? Login</span>
+  </div>
+
+  <script>
+    function showRegister() {
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('registerBox').style.display = 'block';
+    }
+
+    function showLogin() {
+      document.getElementById('registerBox').style.display = 'none';
+      document.getElementById('loginBox').style.display = 'block';
+    }
+
+    function login() {
+      const user = document.getElementById('loginUsername').value;
+      const pass = document.getElementById('loginPassword').value;
+
+      if (!user || !pass) {
+        alert('Username and password cannot be empty!');
+        return;
+      }
+
+      fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('Login successful!');
+          window.location.href = '/index';
+        } else {
+          alert('Login failed.');
+        }
+      });
+    }
+
+
+    function register() {
+      const user = document.getElementById('registerUsername').value;
+      const pass = document.getElementById('registerPassword').value;
+      const confirm = document.getElementById('confirmPassword').value;
+
+      if (!user || !pass) {
+        alert('Username and password cannot be empty!');
+        return;
+      }
+
+      if (pass !== confirm) {
+        alert('Passwords do not match!');
+        return;
+      }
+
+      fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // ✅ 注册成功后立即登录
+          return fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: user, password: pass })
+          });
+        } else {
+          throw new Error('Registration failed. Username already exists.');
+        }
+      })
+      .then(res => res.json())
+      .then(loginData => {
+        if (loginData.success) {
+          window.location.href = '/index';  // ✅ 自动跳主界面
+        } else {
+          alert('Login after registration failed.');
+        }
+      })
+      .catch(err => {
+        alert(err.message);
+      });
+    }
+
+  </script>
+</body>
+</html>
