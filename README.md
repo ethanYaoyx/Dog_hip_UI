@@ -64,7 +64,7 @@ Image_Website/
   `rtmdet_m_dog_hip_287-55485ded.pth`  
   📦 [Download link](https://yuad-my.sharepoint.com/:f:/r/personal/yyao3_mail_yu_edu/Documents/weight_mmdetect?csf=1&web=1&e=s5j0B4)
 
-
+ Please make sure you have same path in model.py.
 3. ✅ You can run `env/Test_Prediction.ipynb` to verify that the models are correctly downloaded and the interface is functioning.
 
 
